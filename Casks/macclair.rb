@@ -2,10 +2,10 @@ cask "macclair" do
   version "0.6.1"
   sha256 "b63ef38cf2b7e524d41fa5ac0c8f8f7d8d02b93bfb5d6932c6379767f1cae8d9"
 
-  url "https://github.com/Najmabdi7/MacClair/releases/download/v#{version}/MacClair-#{version}-macOS-arm64.dmg"
+  url "https://github.com/n-khd/MacClair/releases/download/v#{version}/MacClair-#{version}-macOS-arm64.dmg"
   name "MacClair"
   desc "Analyser l'espace disque et deplacer prudemment des fichiers vers la Corbeille"
-  homepage "https://github.com/Najmabdi7/MacClair"
+  homepage "https://github.com/n-khd/MacClair"
 
   auto_updates true
 

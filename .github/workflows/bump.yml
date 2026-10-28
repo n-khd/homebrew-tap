@@ -21,10 +21,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="$(gh api repos/Najmabdi7/MacClair/releases/latest --jq .tag_name)"
+          TAG="$(gh api repos/n-khd/MacClair/releases/latest --jq .tag_name)"
           VERSION="${TAG#v}"
           mkdir -p "$RUNNER_TEMP/release"
-          gh release download "$TAG" -R Najmabdi7/MacClair \
+          gh release download "$TAG" -R n-khd/MacClair \
             --pattern SHA256SUMS -D "$RUNNER_TEMP/release" --clobber
           SHA="$(awk '/\.dmg$/{print $1}' "$RUNNER_TEMP/release/SHA256SUMS")"
           if [ -z "$SHA" ] || [ -z "$VERSION" ]; then
@@ -38,7 +38,7 @@ jobs:
       - name: Vérifier que le DMG est téléchargeable
         run: |
           set -euo pipefail
-          URL="https://github.com/Najmabdi7/MacClair/releases/download/v${{ steps.latest.outputs.version }}/MacClair-${{ steps.latest.outputs.version }}-macOS-arm64.dmg"
+          URL="https://github.com/n-khd/MacClair/releases/download/v${{ steps.latest.outputs.version }}/MacClair-${{ steps.latest.outputs.version }}-macOS-arm64.dmg"
           CODE="$(curl -sSL -o /dev/null -w '%{http_code}' -r 0-1023 "$URL")"
           echo "$URL -> $CODE"
           case "$CODE" in
