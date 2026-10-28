@@ -1,6 +1,6 @@
 cask "macclair" do
-  version "0.7.0"
-  sha256 "48aa6c86919b17c27b48a1d4ccbd5e96f09014607aba6e8e8f7ef37017f0f6d7"
+  version "0.8.0"
+  sha256 "fc1458d13f445b2dd12c1d268d03fd68f7f733b270b4f101e8e195bf2e493c64"
 
   url "https://github.com/n-khd/MacClair/releases/download/v#{version}/MacClair-#{version}-macOS-arm64.dmg"
   name "MacClair"
