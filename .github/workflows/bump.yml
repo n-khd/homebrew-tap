@@ -1,0 +1,64 @@
+name: Bump macclair
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le tap
+        uses: actions/checkout@v4
+
+      - name: Lire la dernière release de MacClair
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="$(gh api repos/Najmabdi7/MacClair/releases/latest --jq .tag_name)"
+          VERSION="${TAG#v}"
+          mkdir -p "$RUNNER_TEMP/release"
+          gh release download "$TAG" -R Najmabdi7/MacClair \
+            --pattern SHA256SUMS -D "$RUNNER_TEMP/release" --clobber
+          SHA="$(awk '/\.dmg$/{print $1}' "$RUNNER_TEMP/release/SHA256SUMS")"
+          if [ -z "$SHA" ] || [ -z "$VERSION" ]; then
+            echo "::error::Impossible de lire la version ou la somme du DMG."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Version publiée : $VERSION ($SHA)"
+
+      - name: Vérifier que le DMG est téléchargeable
+        run: |
+          set -euo pipefail
+          URL="https://github.com/Najmabdi7/MacClair/releases/download/v${{ steps.latest.outputs.version }}/MacClair-${{ steps.latest.outputs.version }}-macOS-arm64.dmg"
+          CODE="$(curl -sSL -o /dev/null -w '%{http_code}' -r 0-1023 "$URL")"
+          echo "$URL -> $CODE"
+          [ "$CODE" = "200" ] || { echo "::error::DMG introuvable ($CODE)"; exit 1; }
+
+      - name: Mettre à jour le cask
+        run: |
+          set -euo pipefail
+          sed -i -E 's/^  version ".*"$/  version "${{ steps.latest.outputs.version }}"/' Casks/macclair.rb
+          sed -i -E 's/^  sha256 ".*"$/  sha256 "${{ steps.latest.outputs.sha256 }}"/' Casks/macclair.rb
+          git diff -- Casks/macclair.rb
+
+      - name: Valider et publier
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Casks/macclair.rb; then
+            echo "Cask déjà à jour."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/macclair.rb
+          git commit -m "macclair ${{ steps.latest.outputs.version }}"
+          git push origin HEAD
