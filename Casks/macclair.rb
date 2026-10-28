@@ -7,6 +7,8 @@ cask "macclair" do
   desc "Analyser l'espace disque et deplacer prudemment des fichiers vers la Corbeille"
   homepage "https://github.com/Najmabdi7/MacClair"
 
+  auto_updates true
+
   livecheck do
     url :url
     strategy :github_latest
