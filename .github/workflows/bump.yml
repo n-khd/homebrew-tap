@@ -27,18 +27,20 @@ jobs:
           gh release download "$TAG" -R n-khd/MacClair \
             --pattern SHA256SUMS -D "$RUNNER_TEMP/release" --clobber
           SHA="$(awk '/\.dmg$/{print $1}' "$RUNNER_TEMP/release/SHA256SUMS")"
-          if [ -z "$SHA" ] || [ -z "$VERSION" ]; then
-            echo "::error::Impossible de lire la version ou la somme du DMG."
+          DMG="$(awk '/[.]dmg$/{print $2}' "$RUNNER_TEMP/release/SHA256SUMS")"
+          if [ -z "$SHA" ] || [ -z "$VERSION" ] || [ -z "$DMG" ]; then
+            echo "::error::Impossible de lire la version, la somme ou le nom du DMG."
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "dmg=$DMG" >> "$GITHUB_OUTPUT"
           echo "Version publiée : $VERSION ($SHA)"
 
       - name: Vérifier que le DMG est téléchargeable
         run: |
           set -euo pipefail
-          URL="https://github.com/n-khd/MacClair/releases/download/v${{ steps.latest.outputs.version }}/MacClair-${{ steps.latest.outputs.version }}-macOS-arm64.dmg"
+          URL="https://github.com/n-khd/MacClair/releases/download/v${{ steps.latest.outputs.version }}/${{ steps.latest.outputs.dmg }}"
           CODE="$(curl -sSL -o /dev/null -w '%{http_code}' -r 0-1023 "$URL")"
           echo "$URL -> $CODE"
           case "$CODE" in
@@ -51,6 +53,13 @@ jobs:
           set -euo pipefail
           sed -i -E 's/^  version ".*"$/  version "${{ steps.latest.outputs.version }}"/' Casks/macclair.rb
           sed -i -E 's/^  sha256 ".*"$/  sha256 "${{ steps.latest.outputs.sha256 }}"/' Casks/macclair.rb
+          # URL alignee sur le nom reel de l archive publiee (universal, arm64, ...).
+          DMG_NAME='${{ steps.latest.outputs.dmg }}'
+          sed -i -E "s|^  url \".*\"\$|  url \"https://github.com/n-khd/MacClair/releases/download/v#{version}/${DMG_NAME}\"|" Casks/macclair.rb
+          # Une archive universelle rend la contrainte d architecture inutile (et bloquante pour Intel).
+          if [[ "$DMG_NAME" == *universal* ]]; then
+            sed -i '/depends_on arch: :arm64/d' Casks/macclair.rb
+          fi
           git diff -- Casks/macclair.rb
 
       - name: Valider et publier
