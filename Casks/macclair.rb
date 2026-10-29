@@ -1,8 +1,8 @@
 cask "macclair" do
-  version "0.8.0"
-  sha256 "fc1458d13f445b2dd12c1d268d03fd68f7f733b270b4f101e8e195bf2e493c64"
+  version "0.9.0"
+  sha256 "1b5f7f49db8d028d613a302b7be1e2bcdc1e24060df3c40a78af416a4b43790e"
 
-  url "https://github.com/n-khd/MacClair/releases/download/v#{version}/MacClair-0.8.0-macOS-arm64.dmg"
+  url "https://github.com/n-khd/MacClair/releases/download/v#{version}/MacClair-0.9.0-macOS-universal.dmg"
   name "MacClair"
   desc "Analyser l'espace disque et deplacer prudemment des fichiers vers la Corbeille"
   homepage "https://github.com/n-khd/MacClair"
@@ -14,7 +14,6 @@ cask "macclair" do
     strategy :github_latest
   end
 
-  depends_on arch: :arm64
   depends_on macos: ">= :sonoma"
 
   app "MacClair.app"
