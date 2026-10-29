@@ -55,7 +55,9 @@ jobs:
           sed -i -E 's/^  sha256 ".*"$/  sha256 "${{ steps.latest.outputs.sha256 }}"/' Casks/macclair.rb
           # URL alignee sur le nom reel de l archive publiee (universal, arm64, ...).
           DMG_NAME='${{ steps.latest.outputs.dmg }}'
-          sed -i -E "s|^  url \".*\"\$|  url \"https://github.com/n-khd/MacClair/releases/download/v#{version}/${DMG_NAME}\"|" Casks/macclair.rb
+          # Le numero de version reste un placeholder #{version} dans le cask (convention Homebrew).
+          DMG_TEMPLATE="${DMG_NAME/${{ steps.latest.outputs.version }}/#\{version\}}"
+          sed -i -E "s|^  url \".*\"\$|  url \"https://github.com/n-khd/MacClair/releases/download/v#{version}/${DMG_TEMPLATE}\"|" Casks/macclair.rb
           # Une archive universelle rend la contrainte d architecture inutile (et bloquante pour Intel).
           if [[ "$DMG_NAME" == *universal* ]]; then
             sed -i '/depends_on arch: :arm64/d' Casks/macclair.rb
